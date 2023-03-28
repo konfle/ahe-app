@@ -1,7 +1,7 @@
 ### Commands
 
 ###### Start the PostgreSQL Docker container <br>
-``docker-compose up --ddetach``
+``docker-compose up --detach``
 
 ###### Stop the PostgreSQL Docker container <br>
 ``docker-compose down``
