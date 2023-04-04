@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.config import settings
-from backend.routers import user, auth
+from .config import settings
+from .routers import user, auth, health
 
 app = FastAPI()
 
@@ -17,10 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(health.router, tags=['Health'], prefix='/api/health')
 app.include_router(auth.router, tags=['Auth'], prefix='/api/auth')
 app.include_router(user.router, tags=['Users'], prefix='/api/users')
 
-
-@app.get('/api/health')
-def root():
-    return {'status': 'available'}
