@@ -143,3 +143,27 @@ def logout(response: Response, authorize: AuthJWT = Depends(), user_id: str = De
     response.set_cookie('logged_in', '', -1)
 
     return {'status': 'success'}
+
+
+@router.get('/verify-email/{token}')
+def verify_user(token: str, db: Session = Depends(get_db)):
+    hashed_code = hashlib.sha256()
+    hashed_code.update(bytes.fromhex(token))
+    verification_code = hashed_code.hexdigest()
+    user_query = db.query(models.User).filter(
+        models.User.verification_code == verification_code)
+    db.commit()
+    user = user_query.first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Invalid code or user doesn't exist")
+    if user.verified:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail='Email can only be verified once')
+    user_query.update(
+        {'verified': True, 'verification_code': None}, synchronize_session=False)
+    db.commit()
+    return {
+        "status": "success",
+        "message": "Account verified successfully"
+    }
