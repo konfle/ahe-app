@@ -1,4 +1,7 @@
+import hashlib
 from datetime import timedelta
+from random import randbytes
+
 from fastapi import APIRouter, Request, Response, status, Depends, HTTPException
 from pydantic import EmailStr
 
@@ -8,7 +11,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from backend.oauth2 import AuthJWT
 from ..config import settings
-
+from ..email import Email
 
 router = APIRouter()
 ACCESS_TOKEN_EXPIRES_IN = settings.ACCESS_TOKEN_EXPIRES_IN
@@ -16,11 +19,12 @@ REFRESH_TOKEN_EXPIRES_IN = settings.REFRESH_TOKEN_EXPIRES_IN
 
 
 # Register a new user
-@router.post('/register', status_code=status.HTTP_201_CREATED, response_model=schemas.UserResponse)
-async def create_user(payload: schemas.CreateUserSchema, db: Session = Depends(get_db)):
+@router.post('/register', status_code=status.HTTP_201_CREATED)
+async def create_user(payload: schemas.CreateUserSchema, request: Request, db: Session = Depends(get_db)):
     # Check if user already exist
-    user = db.query(models.User).filter(
-        models.User.email == EmailStr(payload.email.lower())).first()
+    user_query = db.query(models.User).filter(
+        models.User.email == EmailStr(payload.email.lower()))
+    user = user_query.first()
     if user:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT,
                             detail='Account already exist')
@@ -32,13 +36,32 @@ async def create_user(payload: schemas.CreateUserSchema, db: Session = Depends(g
     payload.password = utils.hash_password(payload.password)
     del payload.passwordConfirm
     payload.role = 'user'
-    payload.verified = True
+    payload.verified = False
     payload.email = EmailStr(payload.email.lower())
     new_user = models.User(**payload.dict())
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return new_user
+
+    try:
+        # Send Verification Email
+        token = randbytes(10)
+        hashed_code = hashlib.sha256()
+        hashed_code.update(token)
+        verification_code = hashed_code.hexdigest()
+        user_query.update(
+            {'verification_code': verification_code}, synchronize_session=False)
+        db.commit()
+        url = f"{request.url.scheme}://{request.client.host}:{request.url.port}/api/auth/verify-email/{token.hex()}"
+        await Email(new_user, url, [payload.email]).send_verification_code()
+    except Exception as error:
+        print('Error', error)
+        user_query.update(
+            {'verification_code': None}, synchronize_session=False)
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail='There was an error sending email')
+    return {'status': 'success', 'message': 'Verification token successfully sent to your email'}
 
 
 # Login user
