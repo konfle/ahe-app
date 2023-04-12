@@ -49,3 +49,13 @@ def update_post(id: str, post: schemas.UpdatePostSchema, db: Session = Depends(g
     post_query.update(post.dict(exclude_unset=True), synchronize_session=False)
     db.commit()
     return updated_post
+
+
+# Get a single post
+@router.get('/{id}', response_model=schemas.PostResponse)
+def get_post(id: str, db: Session = Depends(get_db), user_id: str = Depends(require_user)):
+    post = db.query(models.Post).filter(models.Post.id == id).first()
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"No post with this id: {id} found")
+    return post
