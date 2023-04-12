@@ -25,7 +25,7 @@ export const postApi = createApi({
         query({ id, post }) {
           return {
             url: `/posts/${id}`,
-            method: 'PATCH',
+            method: 'PUT',
             credentials: 'include',
             body: post,
           };

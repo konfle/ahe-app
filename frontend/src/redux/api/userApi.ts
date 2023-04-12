@@ -15,8 +15,14 @@ export const userApi = createApi({
           credentials: 'include',
         };
       },
-      transformResponse: (result: { data: { user: IUser } }) =>
-        result.data.user,
+//       transformResponse: (result: { data: { user: IUser } }) =>
+//         result.data.user,
+    transformResponse: (result: { data: { user: IUser } }) => {
+      if (!result.data || !result.data.user) {
+        throw new Error('Invalid API response');
+      }
+      return result.data.user;
+    },
       async onQueryStarted(args, { dispatch, queryFulfilled }) {
         try {
           const { data } = await queryFulfilled;
