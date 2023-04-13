@@ -12,6 +12,7 @@ class User(Base):
     name = Column(String,  nullable=False)
     email = Column(String, unique=True, nullable=False)
     password = Column(String, nullable=False)
+    photo = Column(String, nullable=True)
     verified = Column(Boolean, nullable=False, server_default='False')
     verification_code = Column(String, nullable=True, unique=True)
     role = Column(String, server_default='user', nullable=False)
