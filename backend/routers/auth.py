@@ -35,7 +35,6 @@ async def create_user(payload: schemas.CreateUserSchema, request: Request, db: S
     #  Hash the password
     payload.password = utils.hash_password(payload.password)
     del payload.passwordConfirm
-    payload.role = 'user'
     payload.verified = False
     payload.email = EmailStr(payload.email.lower())
     new_user = models.User(**payload.dict())
