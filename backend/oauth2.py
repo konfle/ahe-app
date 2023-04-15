@@ -8,7 +8,6 @@ from . import models
 from .database import get_db
 from sqlalchemy.orm import Session
 from .config import settings
-from .models import User
 
 
 class Settings(BaseModel):
