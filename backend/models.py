@@ -3,6 +3,7 @@ from .database import Base
 from sqlalchemy import TIMESTAMP, Column, String, Boolean, text, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
+from pydantic import BaseModel
 
 
 class User(Base):
@@ -20,6 +21,10 @@ class User(Base):
                         nullable=False, server_default=text("now()"))
     updated_at = Column(TIMESTAMP(timezone=True),
                         nullable=False, server_default=text("now()"))
+
+
+class UserDelete(BaseModel):
+    id: uuid.UUID
 
 
 class Post(Base):
