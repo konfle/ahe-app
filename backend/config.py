@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     EMAIL_FROM: EmailStr
 
     class Config:
-        env_file = './.env'
+        env_file: str = "./.env"
 
 
 settings = Settings()
