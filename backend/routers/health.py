@@ -6,8 +6,8 @@ from ..database import SQLALCHEMY_DATABASE_URL
 router = APIRouter()
 
 
-@router.get("/")
-async def healthcheck():
+@router.get("/db", summary="Database health check")
+async def database_healthcheck():
     try:
         db_engine = create_engine(SQLALCHEMY_DATABASE_URL)
         db_conn = db_engine.connect()

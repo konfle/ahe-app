@@ -20,7 +20,7 @@ app.add_middleware(
 
 
 @app.get("/", include_in_schema=False)
-async def redirect_to_docs(request: Request):
+async def redirect_to_docs():
     return RedirectResponse(url="/docs")
 
 
