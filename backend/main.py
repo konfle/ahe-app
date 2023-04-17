@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from backend.config import settings
 from backend.routers import user, auth, post, health
@@ -16,6 +17,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.get("/", include_in_schema=False)
+async def redirect_to_docs(request: Request):
+    return RedirectResponse(url="/docs")
+
 
 app.include_router(health.router, tags=['Health'], prefix='/api/health')
 app.include_router(auth.router, tags=['Auth'], prefix='/api/auth')
